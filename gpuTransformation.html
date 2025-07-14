@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GPU Shadow</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // ✅ เปิดใช้งานเงา!
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        document.body.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+            60, // FOV
+            window.innerWidth / window.innerHeight,
+            0.1, // near
+            1000 // far
+        );
+
+        // ✅ Directional Light ที่สร้างเงา
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 5);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 1024;
+        light.shadow.mapSize.height = 1024;
+        light.shadow.camera.near = 0.5;
+        light.shadow.camera.far = 50;
+
+        scene.add(light);
+
+        // ✅ Ambient Light เล็กน้อยให้สว่างรวม
+        const ambient = new THREE.AmbientLight(0x404040);
+        scene.add(ambient);
+
+        // ✅ กล้อง
+        camera.position.set(0, 1, 5);
+        camera.lookAt(0, 0, 0);
+
+        // ✅ กล่อง
+        const geometry = new THREE.BoxGeometry(1, 2, 1);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true; // ✅ กล่องส่งเงา
+        cube.receiveShadow = false; // ✅ กล่องไม่รับเงา (ไม่จำเป็น)
+        scene.add(cube);
+
+        // ✅ ทรงกลม
+        const geometry2 = new THREE.SphereGeometry(0.5, 16, 16);
+        const sphere = new THREE.Mesh(
+            geometry2,
+            new THREE.MeshStandardMaterial({ color: 0x00ff00 })
+        );
+        sphere.position.set(2, 0.5, 0);
+        sphere.castShadow = true; // ✅ ทรงกลมส่งเงา
+        scene.add(sphere);
+
+        // ✅ พื้น
+        const planeGeometry = new THREE.PlaneGeometry(10, 10);
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2; // หมุนให้เป็นพื้น
+        plane.position.y = -0.5;
+        plane.receiveShadow = true; // ✅ พื้นรับเงา
+        scene.add(plane);
+
+        // ✅ render loop
+        function animate(t) {
+           // cube.rotation.x = t * 0.001;
+           // cube.rotation.y = t * 0.001;
+           // cube.rotation.z = t * 0.01;
+
+            sphere.rotation.y = t * 0.001;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate(0);
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'a') {
+                cube.rotation.y -= 0.1; // หมุนกล้องเข้า
+            } else if (event.key === 'd') {
+                cube.rotation.y += 0.1; // หมุนกล้องออก
+            } else if (event.key === 'w') {
+                cube.rotation.x -= 0.1; // หมุนกล้องซ้าย
+            } else if (event.key === 's') {
+                cube.rotation.x += 0.1; // หมุนกล้องขวา
+            }
+            if (event.key === 'ArrowUp') {
+                cube.position.y += 0.1; // เลื่อนกล้องเข้า
+            } else if (event.key === 'ArrowDown') {
+                cube.position.y -= 0.1; // เลื่อนกล้องออก
+            } else if (event.key === 'ArrowLeft') {
+                cube.position.x -= 0.1; // เลื่อนกล้องซ้าย
+            } else if (event.key === 'ArrowRight') {
+                cube.position.x += 0.1; // เลื่อนกล้องขวา
+            }
+            if (event.key === 'z') {
+                cube.position.z += 0.1; // ซูมกล้องเข้า
+            } else if (event.key === 'x') {
+                cube.position.z -= 0.1; // ซูมกล้องออก
+            }
+            
+        });
+    </script>
+</body>
+
+</html>
